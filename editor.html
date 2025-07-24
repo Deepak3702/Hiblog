@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Editor - HiBlog</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
+        header h1 { text-align: center; color: #007bff; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        .form-group input[type="text"], .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .editor-toolbar { background-color: #f0f0f0; padding: 10px; border-radius: 5px 5px 0 0; border: 1px solid #ddd; border-bottom: none; display: flex; align-items: center; gap: 5px; }
+        .editor-toolbar button { background-color: #fff; border: 1px solid #ccc; border-radius: 3px; padding: 5px 10px; cursor: pointer; font-weight: bold; }
+        #editor { border: 1px solid #ddd; padding: 15px; min-height: 300px; outline: none; line-height: 1.6; }
+        .image-preview { max-width: 200px; margin-top: 10px; border: 1px solid #ddd; padding: 5px; border-radius: 5px; }
+        .save-btn { background-color: #28a745; color: #fff; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; float: right; margin-top: 20px; font-size: 16px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1 id="page-title">Create a New Post</h1></header>
+        <main>
+            <div class="form-group">
+                <label for="postTitle">Post Title (Main SEO Title)</label>
+                <input type="text" id="postTitle" placeholder="Your Catchy, SEO-Friendly Title">
+            </div>
+            <!-- FIXED: Added missing SEO fields -->
+            <div class="form-group">
+                <label for="postDescription">SEO Description</label>
+                <textarea id="postDescription" rows="3" placeholder="A brief summary for search engines (approx. 160 characters)."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="postKeywords">SEO Keywords</label>
+                <input type="text" id="postKeywords" placeholder="e.g., web design, javascript, user experience">
+            </div>
+            <div class="form-group">
+                <label for="postAuthor">Author Name</label>
+                <input type="text" id="postAuthor" placeholder="e.g., Jane Doe">
+            </div>
+            <div class="form-group">
+                <label for="postImageFile">Upload Feature Image</label>
+                <input type="file" id="postImageFile" accept="image/*">
+                <img id="imagePreview" src="" alt="Image Preview" class="image-preview" style="display: none;">
+            </div>
+            <div class="form-group">
+                <label>Content</label>
+                <div class="editor-toolbar">
+                    <button onclick="document.execCommand('bold')" title="Bold">B</button>
+                    <button onclick="document.execCommand('italic')" title="Italic">I</button>
+                    <button onclick="document.execCommand('insertOrderedList')" title="Numbered List">1.</button>
+                    <button onclick="insertImageIntoContent()" title="Insert Image from Device">IMG</button>
+                </div>
+                <div id="editor" contenteditable="true"></div>
+            </div>
+            <button id="saveBtn" class="save-btn">Publish Post</button>
+        </main>
+    </div>
+
+    <script>
+        // This is the FULL, corrected script for the editor.
+        const pageTitleElem = document.getElementById('page-title');
+        const saveBtn = document.getElementById('saveBtn');
+        const imagePreview = document.getElementById('imagePreview');
+        const featureImageInput = document.getElementById('postImageFile');
+        const editor = document.getElementById('editor');
+        
+        let existingPostId = null;
+        let featureImageBase64 = null;
+
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            existingPostId = params.get('id');
+
+            if (existingPostId) {
+                pageTitleElem.textContent = 'Edit Post';
+                saveBtn.textContent = 'Update Post';
+                loadPostForEditing(existingPostId);
+            }
+        });
+        
+        featureImageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    featureImageBase64 = e.target.result;
+                    imagePreview.src = featureImageBase64;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function insertImageIntoContent() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.onchange = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const altText = prompt("Enter a description for this image (for SEO and accessibility):", "");
+                    if (altText === null) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imgHtml = `<img src="${e.target.result}" alt="${altText}" style="max-width: 100%; height: auto;">`;
+                        editor.focus();
+                        document.execCommand('insertHTML', false, imgHtml);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            fileInput.click();
+        }
+
+        function loadPostForEditing(id) {
+            const posts = JSON.parse(localStorage.getItem('blogPosts')) || [];
+            const postToEdit = posts.find(p => p.id == id);
+            
+            if (postToEdit) {
+                document.getElementById('postTitle').value = postToEdit.title;
+                document.getElementById('postDescription').value = postToEdit.description || '';
+                document.getElementById('postKeywords').value = postToEdit.keywords || '';
+                document.getElementById('postAuthor').value = postToEdit.author;
+                editor.innerHTML = postToEdit.content;
+                
+                featureImageBase64 = postToEdit.imageUrl;
+                imagePreview.src = featureImageBase64;
+                imagePreview.style.display = 'block';
+            }
+        }
+
+        saveBtn.addEventListener('click', () => {
+            const postData = {
+                title: document.getElementById('postTitle').value,
+                description: document.getElementById('postDescription').value,
+                keywords: document.getElementById('postKeywords').value,
+                author: document.getElementById('postAuthor').value,
+                content: editor.innerHTML,
+                imageUrl: featureImageBase64
+            };
+
+            if (!postData.title || !postData.author || !postData.content || !postData.imageUrl) {
+                alert('Title, Author, Content, and a Feature Image are required.');
+                return;
+            }
+
+            let posts = JSON.parse(localStorage.getItem('blogPosts')) || [];
+            
+            if (existingPostId) {
+                const postIndex = posts.findIndex(p => p.id == existingPostId);
+                if (postIndex > -1) {
+                    posts[postIndex] = { ...posts[postIndex], ...postData, modifiedDate: new Date().toISOString() };
+                }
+            } else {
+                const newPost = { ...postData, id: Date.now(), publishedDate: new Date().toISOString() };
+                posts.unshift(newPost);
+            }
+
+            localStorage.setItem('blogPosts', JSON.stringify(posts));
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

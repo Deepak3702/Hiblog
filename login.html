@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .login-container { text-align: center; background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        input { font-size: 1em; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; width: 250px; }
+        button { font-size: 1em; padding: 10px 20px; margin-top: 20px; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Admin Access</h1>
+        <p>Enter your secret code to manage content.</p>
+        <input type="password" id="admin-code" placeholder="Enter code here">
+        <br>
+        <button id="login-btn">Login</button>
+    </div>
+
+    <script>
+        const loginBtn = document.getElementById('login-btn');
+        const codeInput = document.getElementById('admin-code');
+        const ADMIN_CODE = '192837465';
+
+        function attemptLogin() {
+            if (codeInput.value === ADMIN_CODE) {
+                // If code is correct, set a session variable.
+                // This means you are "admin" until you close the browser tab.
+                sessionStorage.setItem('isAdmin', 'true');
+                // Redirect to the homepage, which will now show admin buttons.
+                window.location.href = 'index.html';
+            } else {
+                alert('Incorrect Code.');
+                codeInput.value = '';
+            }
+        }
+
+        loginBtn.addEventListener('click', attemptLogin);
+
+        // Allow pressing "Enter" to login
+        codeInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                attemptLogin();
+            }
+        });
+    </script>
+</body>
+</html>
