@@ -111,10 +111,19 @@
                 postGrid.appendChild(card);
 
                 // Ad Placeholder logic remains the same.
-                if (index === 1 && posts.length > 2) {
+                if (index === 0 && posts.length > 1) {
                     const ad = document.createElement('div');
                     ad.className = 'ad-placeholder';
-                    ad.innerHTML = 'Advertisement';
+                    ad.innerHTML = '<script type="text/javascript">
+	atOptions = {
+		'key' : '65cf54729a700e7c1266e6060320c375',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/65cf54729a700e7c1266e6060320c375/invoke.js"></script>';
                     postGrid.appendChild(ad);
                 }
             });
